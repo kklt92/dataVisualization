@@ -1,0 +1,70 @@
+<html>
+<head>
+  <script type='text/javascript' src='https://www.google.com/jsapi'></script>
+  <script type='text/javascript'>
+   google.load('visualization', '1', {'packages': ['geochart','controls']});
+   google.setOnLoadCallback(drawDashboard);
+
+    function drawDashboard() {
+      var data = google.visualization.arrayToDataTable([
+        ['Country', 'Length of motorways'],
+	['Belgium', 1729],
+	['Bulgaria', 328],
+	['Czech Republic', 517.7],
+	['Denmark', 1010],
+	['Germany', 12037],
+	['Estonia', 98],
+	['Ireland', 125],
+	['Greece', 0],
+	['Spain', 9739],
+	['France', 10223],
+	['Croatia', 613],
+	['Italy', 6487],
+	['Crprus', 268],
+	['Latvia', 0],
+	['Lithuania', 417.1],
+	['Luxembourg', 126],
+	['Hungary', 533],
+	['Netherlands', 2516],
+	['Austria', 1645],
+	['Poland', 405],
+	['Portugal', 1835],
+	['Romania', 113],
+	['Slovenia', 456],
+	['Slovakia', 301.6],
+	['Finland', 603],
+	['Sweden',1544],
+	['United Kingdom', 3611],
+	['Iceland', 0],
+	['Liechtenstein', 0],
+	['Norway', 173],
+	['Switzerland', 1342],
+	['Turkey', 1714], 
+      ]);
+
+      var dashboard = new google.visualization.Dashboard(
+	  document.getElementById('dashboard_div'));
+
+      var options = {};
+      options['dataMode'] = 'regions';
+      options['region'] = '150';
+      options['width'] = '1024';
+      options['height'] = '768';
+      options['is3D'] = 'true';
+      options['colorAxis'] = {colors:['#FFFF66', '#66FF33']};
+
+      var container = document.getElementById('map_canvas');
+      var geomap = new google.visualization.GeoChart(container);
+      geomap.draw(data, options);
+  };
+  </script>
+</head>
+
+<body>
+  <div id='dashboard_div'>
+    <div id='map_canvas'></div>
+    <div id='filter_div'></div>
+  </div>
+</body>
+
+</html>

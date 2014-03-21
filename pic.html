@@ -1,0 +1,69 @@
+<html>
+  <head>
+    <script type="text/javascript" src="https://www.google.com/jsapi"></script>
+    <script type="text/javascript" src="script/jquery-1.11.0.min.js"></script>
+    <script type="text/javascript">
+      google.load('visualization', '1', {'packages' : ['corechart','geochart','controls']});
+      google.setOnLoadCallback(init);
+
+      var dataItemArray;    // menu item can be selected to display.
+      var dataDisplay;      // data directly display in graph.
+      var dataArray;        // original data input from csv.
+      function init() {
+        queryData();
+        dataDisplay.send(draw);
+      }
+
+      /**
+       * Convert number from string type to number type.
+       */
+      function arrayStringToInt(_array) {
+        for(i=1; i<_array.length; i++) {
+          for(j=0;j<_array[i].length; j++) {
+            if(isNaN(_array[i][j]==false) {
+              _array[i][j] = parseInt(_array[i][j]);
+            }
+          }
+        }
+        return _array;
+      }
+
+      function getSelectedItem(_array) {
+        var itemCol;
+        var itemArray = [];
+        for(j=0; j<_array[0].length; j++) {
+          if(_array[0][j].localeCompare('GEO') == 0) {
+            itemCol = j;
+            break;
+          }
+        }
+        for(i=1; i<_array.length; i++) {
+          if(itemArray[itemArray.length - 1] != _array[i][itemCol]) {
+            itemArray[itemArray.length] = _array[i][itemCol];
+          }
+        }
+        return itemArray;
+      }
+
+      /* get the data from php */
+      function queryData() {
+        var jsonData = $.ajax({
+            url:"getData.php",
+            dataType:"json",
+            async: false
+        }).responseText;
+
+        dataArray = $.parseJSON(jsonData);
+        dataArray = arrayStringToInt(dataArray);
+      }
+        
+      /**
+       * draw function. Just input the data into the graph.
+       */
+      function draw(response) {
+        if (response.isError()) {
+          alert('Error in query');
+        }
+
+        var map = new google.visualization.GeoChart(document.getElementById('geochart_div'));
+        map.draw(response, options);

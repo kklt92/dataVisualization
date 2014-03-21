@@ -1,0 +1,102 @@
+<html>
+<head>
+  <script type='text/javascript' src='https://www.google.com/jsapi'></script>
+  <script src="http://code.jquery.com/jquery-1.10.1.min.js"></script>
+  <script src="jquery.csv-0.71.js"></script>
+  <script type='text/javascript'>
+   google.load('visualization', '1', {'packages': ['geochart','controls','table','corechart']});
+   google.setOnLoadCallback(drawMap);
+
+   function arrayStringToInt(_array) {
+	   for(i = 1; i<_array.length; i++) {
+		   for(j = 0; j<_array[i].length; j++) {
+				if(isNaN(_array[i][j])==false) {
+					_array[i][j] = parseInt(_array[i][j]);
+				}
+		   }
+	   }
+	   return _array;
+   }
+
+    function drawMap() {
+		var jsonData = $.ajax({
+				url:"getData.php",
+				dataType:"json",
+				async: false
+		}).responseText;
+
+		var dataArray = $.parseJSON(jsonData);
+		console.log(dataArray);
+		dataArray = arrayStringToInt(dataArray);
+		console.log(dataArray);
+		var data = new google.visualization.arrayToDataTable(dataArray);
+		var dataInternal = new google.visualization.DataTable();
+		dataInternal.addColumn('string', 'TIME');
+		dataInternal.addColumn('number', 'GEO');
+		dataInternal.addColumn('number', 'VALUE');
+		dataInternal.addRows([
+				['Germany', 100, 1996],
+				['Denmark', 2000, 1996]
+		]);
+		console.log(data.toJSON());
+		
+
+	  var dataView = new google.visualization.DataView(data);
+	  var dataViewChart = new google.visualization.DataView(data);
+	  var dashboard = new google.visualization.Dashboard(
+		  document.getElementById('dashboard_div'));
+
+	  var yearFilter = new google.visualization.ControlWrapper({
+			  'controlType': "CategoryFilter",
+			  'containerId': 'filter_div',
+			  'options': {
+				  'filterColumnIndex': '2',
+				  'ui': {
+					  'allowMultiple': false,
+					  'allowNone': false,
+					  'allowTyping': false
+				  }
+			  }
+	  });
+
+      var geomap = new google.visualization.ChartWrapper({
+		'chartType': 'GeoChart',
+		'options': {
+			'dataMode': 'regions',
+			'region': 150,
+			'width': 1160,
+			'height': 960,
+			'colorAxis': {colors:['#FFFF66', '#66FF33']},
+		},
+		'containerId': 'map_canvas'
+	});		
+		
+	dataView.setColumns([1,4,0]);
+	dataViewChart.setColumns([1,4]);
+	var lineChart = new google.visualization.LineChart(document.getElementById('linechart_div'));
+	var tableChart1 = new google.visualization.Table(document.getElementById('table1_div'));
+	var tableChart2 = new google.visualization.Table(document.getElementById('table2_div'));
+	var barChart = new google.visualization.BarChart(document.getElementById('barchart_div'));
+		lineChart.draw(dataViewChart);
+		barChart.draw(dataViewChart);
+		tableChart1.draw(dataView);
+		tableChart2.draw(dataInternal);
+		console.log(data.getColumnType(2));
+	dashboard.bind(yearFilter,geomap);
+	dashboard.draw(dataView);
+  }
+  </script>
+</head>
+
+<body>
+  <div id="dashboard_div">
+    <div id='map_canvas'></div>
+	<div id="filter_div"></div>
+</div>
+<div id='linechart_div'></div>
+<div id='barchart_div' style="width: 900px; height: 4500px;"></div>
+<div id='table1_div'></div>
+<div id='table2_div'></div>
+</body>
+
+</html>

@@ -1,0 +1,197 @@
+<html>
+<head>
+  <script type='text/javascript' src='https://www.google.com/jsapi'></script>
+  <script src="http://code.jquery.com/jquery-1.10.1.min.js"></script>
+  <script src="script/jquery.csv-0.71.js"></script>
+  <script type='text/javascript'>
+   google.load('visualization', '1', {'packages': ['motionchart', 'geochart','controls','table','corechart']});
+   google.setOnLoadCallback(drawMap);
+
+   function arrayStringToInt(_array) {
+	   for(i = 1; i<_array.length; i++) {
+		   for(j = 0; j<_array[i].length; j++) {
+				if(isNaN(_array[i][j])==false) {
+					_array[i][j] = parseInt(_array[i][j]);
+				}
+		   }
+	   }
+	   return _array;
+   }
+
+   function getSelectedItem(_array) {
+     var itemCol;
+     var itemArray = [];
+     for(j = 0; j<_array[0].length; j++) {
+       if(_array[0][j].localeCompare('GEO') == 0) {
+         itemCol = j;
+         break;
+       }
+     }
+     for(i = 1; i<_array.length; i++) {
+       if(itemArray[itemArray.length - 1] != _array[i][itemCol]) {
+         itemArray[itemArray.length] = _array[i][itemCol];
+       }
+     }
+
+     return itemArray;
+   }
+
+    function drawMap() {
+		var jsonData = $.ajax({
+				url:"getData.php",
+				dataType:"json",
+				async: false
+		}).responseText;
+
+		var dataArray = $.parseJSON(jsonData);
+		dataArray = arrayStringToInt(dataArray);
+    var dataItemArray = getSelectedItem(dataArray);
+    console.log(dataItemArray);
+		var data = new google.visualization.arrayToDataTable(dataArray);
+		var dataInternal = new google.visualization.DataTable();
+		dataInternal.addColumn('string', 'TIME');
+		dataInternal.addColumn('number', 'GEO');
+		dataInternal.addColumn('number', 'VALUE');
+		dataInternal.addRows([
+				['Germany', 100, 1996],
+				['Denmark', 2000, 1996]
+		]);
+		console.log(data.toJSON());
+		
+    var changeDataButton = document.getElementById('b1');
+    var changeChartButton = document.getElementById('b2');
+
+	  var dataView = []
+    dataView[0] = new google.visualization.DataView(data);
+    dataView[1] = new google.visualization.DataView(dataInternal);
+	  var dataViewChart = new google.visualization.DataView(data);
+	  var dashboard = new google.visualization.Dashboard(
+		  document.getElementById('dashboard_div'));
+
+	  var yearFilter = new google.visualization.ControlWrapper({
+			  'controlType': "CategoryFilter",
+			  'containerId': 'filter_div',
+			  'options': {
+				  'filterColumnIndex': '2',
+				  'ui': {
+					  'allowMultiple': false,
+					  'allowNone': false,
+					  'allowTyping': false
+				  }
+			  }
+	  });
+
+      var geomap = new google.visualization.ChartWrapper({
+		'chartType': 'GeoChart',
+		'options': {
+			'dataMode': 'regions',
+			'region': 150,
+			'width': 1160,
+			'height': 960,
+			'colorAxis': {values: [-1000, 0, 1000], colors:['red', '#FFFF66', '#66FF33']},
+		},
+		'containerId': 'map_canvas'
+	});		
+
+  var motionChart = new google.visualization.MotionChart(document.getElementById('dashboard_div'));
+
+
+  var currChart = 0;
+
+  var sider = new google.visualization.ControlWrapper({
+      'controlType': "CategoryFilter",
+      'containerId': 'sider_div',
+      'options': {
+        'filterColumnIndex': '0',
+        'ui': {
+          'allowMultiple': true,
+          'allowNone': true,
+          'allowTyping': false,
+        }
+      }
+  });
+  dataView[2] = dataView[0];
+  dataView[2].setColumns([0,4,1]);
+	dataView[0].setColumns([1,4,0]);
+	dataViewChart.setColumns([1,4]);
+	var lineChart = new google.visualization.LineChart(document.getElementById('linechart_div'));
+	var tableChart1 = new google.visualization.Table(document.getElementById('table1_div'));
+	var tableChart2 = new google.visualization.Table(document.getElementById('table2_div'));
+	var barChart = new google.visualization.BarChart(document.getElementById('barchart_div'));
+  var current = 0;
+		lineChart.draw(dataViewChart);
+		barChart.draw(dataViewChart);
+		tableChart1.draw(dataView[0]);
+		tableChart2.draw(dataView[1]);
+		console.log(data.getColumnType(2));
+	dashboard.bind([yearFilter, sider],geomap);
+
+  function selectToCompare(selectedValue) {
+    var tempData = geomap.getDataTable().toDataTable();
+    for(i = 0; i < tempData.getNumberOfRows(); i++) {
+      tempData.setValue(i, 1, tempData.getValue(i, 1) - selectedValue);
+    }
+    dashboard.draw(tempData);
+  }
+
+  function drawChart() {
+    changeDataButton.diabled = true;
+    google.visualization.events.addListener(dashboard, 'ready',
+        function() {
+          changeDataButton.disabled = false;
+    });
+    dashboard.draw(dataView[current]);
+  }
+  drawChart();
+
+  changeDataButton.onclick = function() {
+    current = 1 - current;
+    drawChart();
+  }
+
+  changeChartButton.onclick = function() {
+    if(currChart == 0){
+      motionChart.draw(dataView[2]);
+    }
+    else
+    {
+      drawChart();
+    }
+    currChart = 1 - currChart;
+  }
+    
+  
+
+  google.visualization.events.addListener(geomap, 'ready', function() {
+    createListeners();
+  });
+
+  function selectHandle() {
+    var selection = geomap.getChart().getSelection()[0];
+    console.log(selection);
+//    var label = geomap.getDataTable().getValue(selection.row, 0);
+selectToCompare(geomap.getDataTable().getValue(selection.row, 1));
+  }
+
+  function createListeners() {
+    google.visualization.events.addListener(geomap.getChart(), 'select', selectHandle);
+  }
+    }
+  </script>
+</head>
+
+<body>
+  <button id='b1'>change to another data</button>
+  <button id='b2'>change chart</button>
+  <div id="dashboard_div">
+    <div id='map_canvas'></div>
+	<div id="filter_div"></div>
+  <div id="sider_div"></div>
+</div>
+<div id='linechart_div'></div>
+<div id='barchart_div' style="width: 900px; height: 4500px;"></div>
+<div id='table1_div'></div>
+<div id='table2_div'></div>
+</body>
+
+</html>
