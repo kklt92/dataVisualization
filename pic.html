@@ -13,7 +13,13 @@
       var minValue, maxValue  // min and max value for data to descript color axis.
 
       // initial slider.
-      $("#timeSelector").slider();
+      $("#timeSelector").slider({
+          change: function(event, ui) {
+            yearFilter(ui:value);
+          }
+      });
+      var timeValue = $("#timeSelector").slider("option", "values");
+
 
 
       function init() {
