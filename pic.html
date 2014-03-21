@@ -9,6 +9,13 @@
       var dataItemArray;    // menu item can be selected to display.
       var dataDisplay;      // data directly display in graph.
       var dataArray;        // original data input from csv.
+      var options;          // options for the visualization graph.
+      var minValue, maxValue  // min and max value for data to descript color axis.
+
+      // initial slider.
+      $("#timeSelector").slider();
+
+
       function init() {
         queryData();
         dataDisplay.send(draw);
@@ -56,6 +63,13 @@
         dataArray = $.parseJSON(jsonData);
         dataArray = arrayStringToInt(dataArray);
       }
+
+      options = {'dataMode': 'regions',
+                  'region': 150,
+                  'width': 1160,
+                  'height': 960,
+                  'colorAxis': {values: [minValue, 0, maxValue], colors:['red', '#FFFF66', '#66FF33']},
+                  };
         
       /**
        * draw function. Just input the data into the graph.
@@ -67,3 +81,4 @@
 
         var map = new google.visualization.GeoChart(document.getElementById('geochart_div'));
         map.draw(response, options);
+      }
